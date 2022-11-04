@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `Like` ADD COLUMN `liked` BOOLEAN NOT NULL DEFAULT false;

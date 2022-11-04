@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["selectRelationCount"]
 }
 
 datasource db {
@@ -27,21 +28,29 @@ model Post {
   totalLikes Int @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  userId Int? @unique
+  userId Int? 
+  liked Boolean @default(false)
+  comments Comment[]
+  likes Like[]
 }
 
 model Comment {
   id Int @id @default(autoincrement())
   content String
   createdAt DateTime @default(now())
-  userId Int? @unique
+  userId Int? 
+  postId Int?
+  posts Post? @relation(fields: [postId], references: [id])
 }
 
 model Like {
   id Int @id @default(autoincrement())
+  liked Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   userId Int? @unique
+  posts Post? @relation(fields: [postId], references: [id])
+  postId Int?
 }
 
 

@@ -1,4 +1,4 @@
-import PostSmall from "../../components/PostSmall";
+import Post from "../../components/Post";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import NewPostForm from "../../components/CommentForm";
@@ -6,50 +6,27 @@ import Comments from "../../components/Comments";
 import axios from "axios";
 import { prisma } from "../../server/db/client";
 import useSWR from "swr";
+import Head from "next/head";
 
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
-export default function detail({ post, users }) {
-  const [likes, setLikes] = useState([]);
-  // const like = likes.find(
-  //   like => like.postId == post.id && like.userId == users[0].id
-  // );
-  const [isLiked, setIsLiked] = useState(false);
-  const { data, error } = useSWR(`/api/post/${post.id}`, fetcher);
+export default function detail({ post }) {
+  const [newPost, setNewPost] = useState([]);
+  const { data, mutate } = useSWR(`/api/post/${post.id}`, fetcher);
   const route = useRouter();
 
-  useEffect(() => {
-    (async () => {
-      const res = await axios.get(`/api/post/${post.id}/like`);
-      setLikes(res.data);
-    })();
-  }, [likes]);
+  async function likeHandler() {
+    const res = axios.post(`/api/post/${post.id}/like`, {
+      postId: post.id,
+      liked: newPost.liked ? newPost.liked : post.liked,
+    });
 
-  const likeHandler = () => {
-    if (likes.length == 0) {
-      axios.post(`/api/post/${post.id}/like`, {
-        post,
-        likes: likes
-          ? likes.find(
-              like => like.postId == post.id && like.userId == users[0].id
-            )
-          : likes[0],
-        userId: users[0].id,
-      });
-      return;
-    } else {
-      axios.put(`/api/post/${post.id}/like`, {
-        post,
-        likes: likes
-          ? likes.find(
-              like => like.postId == post.id && like.userId == users[0].id
-            )
-          : likes[0],
-        userId: users[0].id,
-      });
-      return;
-    }
-  };
+    const response = await res;
+    setNewPost(response.data);
+    mutate();
+    route.replace(route.asPath);
+    return;
+  }
   const commentHandler = () => {};
   const shareHandler = () => {};
   const commentSubmitHandler = async ({ comment }) => {
@@ -57,19 +34,27 @@ export default function detail({ post, users }) {
       comment,
       postId: Number(post.id),
     });
-    route.push(`/post/${post.id}`);
+    mutate([...data, { comment }]);
+    route.replace(route.asPath);
+    return;
   };
   return (
     <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
-      <PostSmall
-        post={post}
-        liked={post.liked}
+      <Head>
+        <title>{post.title}</title>
+      </Head>
+      <Post
+        post={newPost?.post ? newPost.post : post}
+        liked={newPost?.liked ? newPost.liked : post.liked}
         onComment={commentHandler}
         onLike={likeHandler}
+        user={post.user ? post.user : null}
         onShare={shareHandler}
-        href={`/post/${post.id}`}
       />
-      <NewPostForm onSubmit={commentSubmitHandler} />;
+      <NewPostForm
+        onSubmit={commentSubmitHandler}
+        user={post.user ? post.user : null}
+      />
       {data && <Comments comments={data} />}
     </div>
   );
@@ -78,17 +63,16 @@ export default function detail({ post, users }) {
 export const getServerSideProps = async context => {
   const post = await prisma.post.findUnique({
     where: { id: Number(context.params.id) },
+    include: {
+      user: true,
+      likes: true,
+      comments: true,
+    },
   });
 
-  // const likes = await prisma.like.findMany();
-  // const like = likes?.find(it => it.postId == post.id);
-
-  const users = await prisma.user.findMany();
   return {
     props: {
       post: JSON.parse(JSON.stringify(post)),
-      // likes: like ? JSON.parse(JSON.stringify(like)) : [],
-      users: JSON.parse(JSON.stringify(users)),
     },
   };
 };

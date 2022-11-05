@@ -1,4 +1,38 @@
 import { prisma } from '../../../../server/db/client'
+import { unstable_getServerSession } from "next-auth/next"
+import { authOptions } from "../../auth/[...nextauth]"
+const post = async (req, res) => {
+    const session = await unstable_getServerSession(req, res, authOptions)
+    if (!session) {
+        res.status(401).json({ error: 'Unauthorized' })
+        return
+    }
+    const prismaUser = await prisma.user.findUnique({
+        where: { email: session.user.email },
+    })
+    if (!prismaUser) {
+        res.status(401).json({ error: 'Unauthorized' })
+        return
+    }
+    const { comment, postId } = req.body
+    const post = await prisma.post.update({
+        where: {
+            id: Number(postId)
+        },
+        data: {
+            totalComments: { increment: 1 },
+            comments: {
+                create: {
+                    content: comment,
+                    userId: prismaUser.id,
+                }
+
+            }
+        }
+    })
+    res.status(201).json(post)
+    return
+}
 
 export default async function handle(req, res) {
 
@@ -6,40 +40,23 @@ export default async function handle(req, res) {
 
     switch (method) {
         case 'POST':
-            // get the title and content from the request body
-            const { comment, postId } = req.body
-            const users = await prisma.user.findMany()
-            console.log("req.body", req.body)
-            // use prisma to create a new post using that data
-            const post = await prisma.comment.create({
-                data: {
-                    content: comment,
-                    userId: Number(users[0].id),
-                    postId: Number(postId)
-                }
-            })
-            const posts = await prisma.post.update({
-                where: { id: Number(postId) },
-                data: { totalComments: { increment: 1 } }
-            })
-            // send the post object back to the client
-            res.status(201).json(post)
+            post(req, res)
             break
         case 'GET':
-            // get all posts from the database
             const id = req.query.id
-            if (id) {
-                const comments = await prisma.comment.findMany({
-                    where: {
-                        postId: Number(id)
-                    }
-                })
-                // send the posts back to the client
-                res.status(200).json(comments)
-            } else {
-                const comments = await prisma.comment.findMany()
-                res.status(200).json(comments)
-            }
+            const comments = await prisma.comment.findMany({
+                where: {
+                    postId: Number(id)
+                },
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    user: true,
+                    post: true
+                }
+            })
+            res.status(200).json(comments)
             break
         default:
             res.status(405).end(`Method ${method} Not Allowed`)

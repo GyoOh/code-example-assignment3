@@ -2,8 +2,8 @@ import Button from "../components/Button";
 import { useRouter } from "next/router";
 import useSWR from "swr";
 import { useEffect, useState } from "react";
-import Post from "../components/Post";
 import axios from "axios";
+import PostSmall from "../components/PostSmall";
 
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
@@ -11,14 +11,11 @@ export default function Home() {
   const [liked, setLiked] = useState(false);
   const { data, error } = useSWR("/api/posts", fetcher);
   const route = useRouter();
-  console.log(data);
-
   const likeHandler = () => {};
   const commentHandler = () => {};
   const shareHandler = () => {};
   const clickHandler = async post => {
     route.push(`/post/${post.id}`);
-    // const res = await axios.post("/api/post", post);
   };
   if (error) return <div>failed to load</div>;
   if (!data) return <div>loading...</div>;
@@ -31,26 +28,24 @@ export default function Home() {
           <span className="block text-indigo-300">Gyo's Assignment</span>
         </h1>
         <div className="mt-6 text-gray-300 space-y-6">
-          {data?.posts.map(it => (
-            <div
-              key={it.id}
-              onClick={async () => {
-                route.push(`/post/${it.id}`);
-              }}
-            >
-              <Post
-                post={it}
-                liked={liked}
-                onComment={commentHandler}
-                onLike={likeHandler}
-                onShare={shareHandler}
-                user={data?.users.find(user => user.id === it.userId)}
-              >
-                {error && <div>failed to load</div>}
-                {!data && <div>loading...</div>}
-              </Post>
-            </div>
-          ))}
+          <ul>
+            {data?.posts.map(it => (
+              <li key={it.id}>
+                <PostSmall
+                  post={it}
+                  onLike={likeHandler}
+                  href={`/post/${it.id}`}
+                  onComment={commentHandler}
+                  onShare={shareHandler}
+                  user={it.user ? it.user : null}
+                  className="my-10"
+                >
+                  {error && <div>failed to load</div>}
+                  {!data && <div>loading...</div>}
+                </PostSmall>
+              </li>
+            ))}
+          </ul>
           <p className="text-lg">
             <Button
               onClick={() => route.push("/createPost")}

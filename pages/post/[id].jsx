@@ -1,5 +1,5 @@
 import Post from "../../components/Post";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import NewPostForm from "../../components/CommentForm";
 import Comments from "../../components/Comments";
@@ -12,7 +12,7 @@ import Head from "next/head";
 
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
-export default function detail({ post }) {
+export default function Detail({ post }) {
   const [isClicked, setIsclicked] = useState(true);
   const [newPost, setNewPost] = useState([]);
   const { data, mutate } = useSWR(`/api/post/${post.id}`, fetcher);

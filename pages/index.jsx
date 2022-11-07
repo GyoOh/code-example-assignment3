@@ -19,7 +19,7 @@ export default function Home() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-extrabold tracking-tight text-gray-100 sm:text-4xl">
           <span className="block">Welcome to</span>
-          <span className="block text-indigo-300">Gyo's Assignment</span>
+          <span className="block text-indigo-300">Code example by Gyo</span>
         </h1>
         <div className="mt-6 text-gray-300 space-y-6">
           <ul>
@@ -40,10 +40,9 @@ export default function Home() {
             ))}
           </ul>
           <p className="text-lg">
-            <Button
-              onClick={() => route.push("/createPost")}
-              children="Create a post"
-            />
+            <Button onClick={() => route.push("/createPost")}>
+              create a Post
+            </Button>
           </p>
         </div>
       </div>

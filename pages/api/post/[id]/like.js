@@ -85,7 +85,30 @@ export default async function handle(req, res) {
             break
         case 'GET':
             const id = req.query.id
-            if (id) {
+            const session = await unstable_getServerSession(
+                req,
+                res,
+                authOptions
+            );
+            if (session) {
+                const prismaUser = await prisma.user.findUnique({
+                    where: { email: session.user.email },
+                });
+                const likes = await prisma.like.findMany({
+                    where: {
+                        userId: prismaUser.id,
+                    },
+                });
+                likes.map(async like => {
+                    const newPost = await prisma.post.update({
+                        where: {
+                            id: like.postId,
+                        },
+                        data: {
+                            liked: like.liked,
+                        },
+                    });
+                });
                 const posts = await prisma.post.findMany({
                     where: {
                         id: Number(id)

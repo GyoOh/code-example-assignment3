@@ -1,25 +1,19 @@
 import Button from "../components/Button";
 import { useRouter } from "next/router";
-import useSWR from "swr";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import PostSmall from "../components/PostSmall";
 
-const fetcher = (...args) => fetch(...args).then(res => res.json());
-
 export default function Home() {
-  const [liked, setLiked] = useState(false);
-  const { data, error } = useSWR("/api/posts", fetcher);
+  const [posts, setPosts] = useState([]);
+  useEffect(() => {
+    (async () => {
+      const res = await axios.get("/api/posts");
+      setPosts(res.data);
+    })();
+  }, []);
+  console.log(posts);
   const route = useRouter();
-  const likeHandler = () => {};
-  const commentHandler = () => {};
-  const shareHandler = () => {};
-  const clickHandler = async post => {
-    route.push(`/post/${post.id}`);
-  };
-  if (error) return <div>failed to load</div>;
-  if (!data) return <div>loading...</div>;
-
   return (
     <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
       <div className="max-w-2xl mx-auto">
@@ -29,19 +23,18 @@ export default function Home() {
         </h1>
         <div className="mt-6 text-gray-300 space-y-6">
           <ul>
-            {data?.posts.map(it => (
+            {posts?.posts?.map(it => (
               <li key={it.id}>
                 <PostSmall
                   post={it}
-                  onLike={likeHandler}
+                  onLike={() => route.push(`/post/${it.id}`)}
                   href={`/post/${it.id}`}
-                  onComment={commentHandler}
-                  onShare={shareHandler}
+                  onComment={() => route.push(`/post/${it.id}`)}
+                  onShare={() => route.push(`/post/${it.id}`)}
                   user={it.user ? it.user : null}
                   className="my-10"
                 >
-                  {error && <div>failed to load</div>}
-                  {!data && <div>loading...</div>}
+                  {!posts && <div>loading...</div>}
                 </PostSmall>
               </li>
             ))}

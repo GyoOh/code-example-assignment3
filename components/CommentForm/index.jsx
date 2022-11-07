@@ -11,6 +11,7 @@ export default function NewPostForm({
 
   const handleSubmit = e => {
     e.preventDefault();
+    setComment("");
     onSubmit({ comment });
   };
 
@@ -30,7 +31,7 @@ export default function NewPostForm({
               src={user?.image}
               width={50}
               height={50}
-              alt=""
+              alt={user?.name}
             />
           </div>
           <div className="ml-5 flex-1">

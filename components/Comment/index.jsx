@@ -10,7 +10,7 @@ export default function Comment({ comment, user, className }) {
           className="h-6 w-6 rounded-full"
           width={50}
           height={50}
-          src={user?.image}
+          src={user.image}
           alt={user?.name}
         />
       </div>

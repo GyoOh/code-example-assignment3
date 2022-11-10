@@ -10,8 +10,8 @@ export default function SiteNavigation() {
     {
       name: "New",
       Icon: PlusCircleIcon,
-      href: "/addPost",
-      current: router.pathname === "/addPost",
+      href: "/createPost",
+      current: router.pathname === "/createPost",
     },
   ];
 

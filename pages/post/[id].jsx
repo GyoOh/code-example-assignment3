@@ -5,8 +5,6 @@ import NewPostForm from "../../components/CommentForm";
 import Comments from "../../components/Comments";
 import axios from "axios";
 import { prisma } from "../../server/db/client";
-import { unstable_getServerSession } from "next-auth/next";
-import { authOptions } from ".././api/auth/[...nextauth]";
 import useSWR from "swr";
 import Head from "next/head";
 
@@ -68,47 +66,84 @@ export default function Detail({ post }) {
   );
 }
 
-export const getServerSideProps = async context => {
-  const session = await unstable_getServerSession(
-    context.req,
-    context.res,
-    authOptions
-  );
-  if (session) {
-    const prismaUser = await prisma.user.findUnique({
-      where: { email: session.user.email },
-    });
-    const likes = await prisma.like.findMany({
-      where: {
-        userId: prismaUser.id,
-      },
-    });
-    likes.map(async like => {
-      const newPost = await prisma.post.update({
-        where: {
-          id: like.postId,
-        },
-        data: {
-          liked: like.liked,
-        },
-      });
-    });
-    let post = await prisma.post.findUnique({
-      where: { id: Number(context.params.id) },
-      include: {
-        user: true,
-        likes: true,
-        comments: true,
-      },
-    });
-    post.liked = likes.find(like => like.postId === post.id)?.liked;
+// export const getServerSideProps = async context => {
+//   const session = await unstable_getServerSession(
+//     context.req,
+//     context.res,
+//     authOptions
+//   );
+//   if (session) {
+//     const prismaUser = await prisma.user.findUnique({
+//       where: { email: session.user.email },
+//     });
+//     const likes = await prisma.like.findMany({
+//       where: {
+//         userId: prismaUser.id,
+//       },
+//     });
+//     likes.map(async like => {
+//       const newPost = await prisma.post.update({
+//         where: {
+//           id: like.postId,
+//         },
+//         data: {
+//           liked: like.liked,
+//         },
+//       });
+//     });
+//     let post = await prisma.post.findUnique({
+//       where: { id: Number(context.params.id) },
+//       include: {
+//         user: true,
+//         likes: true,
+//         comments: true,
+//       },
+//     });
+//     post.liked = likes.find(like => like.postId === post.id)?.liked;
+//     return {
+//       props: {
+//         post: JSON.parse(JSON.stringify(post)),
+//       },
+//     };
+//   }
+//   let post = await prisma.post.findUnique({
+//     where: { id: Number(context.params.id) },
+//     include: {
+//       user: true,
+//       likes: true,
+//       comments: true,
+//     },
+//   });
+//   post.liked = false;
+//   return {
+//     props: {
+//       post: JSON.parse(JSON.stringify(post)),
+//     },
+//   };
+// };
+
+export const getStaticPaths = async () => {
+  const posts = await prisma.post.findMany();
+  const paths = posts.map(post => {
     return {
-      props: {
-        post: JSON.parse(JSON.stringify(post)),
-      },
+      params: { id: post.id.toString() },
     };
-  }
-  let post = await prisma.post.findUnique({
+  });
+  return {
+    paths,
+    fallback: false,
+  };
+};
+// export const getStaticPaths = async () => {
+//   return {
+//     paths: [],
+//     fallback: "blocking",
+//   };
+// };
+
+export const getStaticProps = async context => {
+  console.log(context);
+  const post = await prisma.post.findUnique({
     where: { id: Number(context.params.id) },
     include: {
       user: true,
@@ -116,7 +151,6 @@ export const getServerSideProps = async context => {
       comments: true,
     },
   });
-  post.liked = false;
   return {
     props: {
       post: JSON.parse(JSON.stringify(post)),

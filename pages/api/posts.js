@@ -8,8 +8,7 @@ function getTitle(code) {
 async function post(req, res) {
     const session = await unstable_getServerSession(req, res, authOptions)
     if (!session) {
-        res.status(401).json({ error: 'Unauthorized' })
-        return
+        return res.status(200).json({ session })
     }
 
     const prismaUser = await prisma.user.findUnique({
@@ -17,8 +16,8 @@ async function post(req, res) {
     })
 
     if (!prismaUser) {
-        res.status(401).json({ error: 'Unauthorized' })
-        return
+        return res.status(401).json({ error: 'Unauthorized' })
+
     }
 
     const { language, code } = req.body
@@ -31,7 +30,7 @@ async function post(req, res) {
             userId: prismaUser.id,
         },
     })
-    res.status(201).json(post)
+    res.status(201).json({ session, post })
 }
 
 
@@ -53,7 +52,6 @@ export default async function handle(req, res) {
                         userId: prismaUser.id,
                     },
                 })
-                console.log(likes)
                 likes.map(async like => {
                     const newPost = await prisma.post.update({
                         where: {

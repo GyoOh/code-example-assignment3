@@ -66,6 +66,8 @@ export default function Post({
           liked={liked}
           totalComments={post.totalComments}
           totalLikes={post.totalLikes}
+          code={post.code}
+          title={post.title}
         />
       </div>
     </>

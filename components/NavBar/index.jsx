@@ -6,7 +6,7 @@ import NextLink from "next/link";
 
 import NextImage from "next/image";
 
-import appIcon from "../../public/app-icon.png";
+import appIcon from "../../public/gimp-icon.png";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");

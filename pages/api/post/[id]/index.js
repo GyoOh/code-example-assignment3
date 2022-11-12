@@ -4,15 +4,15 @@ import { authOptions } from "../../auth/[...nextauth]"
 const post = async (req, res) => {
     const session = await unstable_getServerSession(req, res, authOptions)
     if (!session) {
-        res.status(401).json({ error: 'Unauthorized' })
-        return
+        return res.status(200).json({ session })
     }
+
     const prismaUser = await prisma.user.findUnique({
         where: { email: session.user.email },
     })
     if (!prismaUser) {
-        res.status(401).json({ error: 'Unauthorized' })
-        return
+        return res.status(401).json({ error: 'Unauthorized' })
+
     }
     const { comment, postId } = req.body
     const post = await prisma.post.update({
@@ -30,7 +30,7 @@ const post = async (req, res) => {
             }
         }
     })
-    res.status(201).json(post)
+    res.status(201).json({ post, session })
     return
 }
 

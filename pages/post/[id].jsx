@@ -1,5 +1,5 @@
 import Post from "../../components/Post";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import NewPostForm from "../../components/CommentForm";
 import Comments from "../../components/Comments";
@@ -7,23 +7,38 @@ import axios from "axios";
 import { prisma } from "../../server/db/client";
 import useSWR from "swr";
 import Head from "next/head";
+import Loader from "../../components/Loader";
+import { signIn } from "next-auth/react";
 
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 export default function Detail({ post }) {
+  const [loading, setLoading] = useState(false);
   const [isClicked, setIsclicked] = useState(true);
   const [newPost, setNewPost] = useState([]);
   const { data, mutate } = useSWR(`/api/post/${post.id}`, fetcher);
   const route = useRouter();
+
+  useEffect(() => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, []);
+
   async function likeHandler() {
     const res = axios.post(`/api/post/${post.id}/like`, {
       postId: post.id,
       liked: newPost.liked ? newPost.liked : post.liked,
     });
     const response = await res;
-    setNewPost(response.data);
+    if (!response.data.session) {
+      signIn();
+    }
+    setNewPost(response.data.newPost);
     mutate();
     route.replace(route.asPath);
+
     return;
   }
   const commentHandler = () => {
@@ -35,92 +50,45 @@ export default function Detail({ post }) {
       comment,
       postId: Number(post.id),
     });
+    if (!res.data.session) {
+      signIn();
+    }
     mutate();
     route.replace(route.asPath);
     return;
   };
-  if (!data) return <div>loading...</div>;
+  if (!data) return <Loader />;
   return (
-    <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
-      <Head>
-        <title>{post.title}</title>
-      </Head>
-      <Post
-        post={newPost?.post ? newPost.post : post}
-        liked={newPost?.liked ? newPost.liked : post.liked}
-        onComment={commentHandler}
-        onLike={likeHandler}
-        user={post.user ? post.user : null}
-        onShare={shareHandler}
-      />
-      {isClicked ? (
-        <>
-          <NewPostForm
-            onSubmit={commentSubmitHandler}
+    <>
+      {loading ? (
+        <Loader />
+      ) : (
+        <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
+          <Head>
+            <title>{post.title}</title>
+          </Head>
+          <Post
+            post={newPost?.post ? newPost.post : post}
+            liked={newPost?.liked ? newPost.liked : post.liked}
+            onComment={commentHandler}
+            onLike={likeHandler}
             user={post.user ? post.user : null}
+            onShare={shareHandler}
           />
-          <Comments comments={data} />
-        </>
-      ) : null}
-    </div>
+          {isClicked ? (
+            <>
+              <NewPostForm
+                onSubmit={commentSubmitHandler}
+                user={post.user ? post.user : null}
+              />
+              <Comments comments={data} />
+            </>
+          ) : null}
+        </div>
+      )}
+    </>
   );
 }
-
-// export const getServerSideProps = async context => {
-//   const session = await unstable_getServerSession(
-//     context.req,
-//     context.res,
-//     authOptions
-//   );
-//   if (session) {
-//     const prismaUser = await prisma.user.findUnique({
-//       where: { email: session.user.email },
-//     });
-//     const likes = await prisma.like.findMany({
-//       where: {
-//         userId: prismaUser.id,
-//       },
-//     });
-//     likes.map(async like => {
-//       const newPost = await prisma.post.update({
-//         where: {
-//           id: like.postId,
-//         },
-//         data: {
-//           liked: like.liked,
-//         },
-//       });
-//     });
-//     let post = await prisma.post.findUnique({
-//       where: { id: Number(context.params.id) },
-//       include: {
-//         user: true,
-//         likes: true,
-//         comments: true,
-//       },
-//     });
-//     post.liked = likes.find(like => like.postId === post.id)?.liked;
-//     return {
-//       props: {
-//         post: JSON.parse(JSON.stringify(post)),
-//       },
-//     };
-//   }
-//   let post = await prisma.post.findUnique({
-//     where: { id: Number(context.params.id) },
-//     include: {
-//       user: true,
-//       likes: true,
-//       comments: true,
-//     },
-//   });
-//   post.liked = false;
-//   return {
-//     props: {
-//       post: JSON.parse(JSON.stringify(post)),
-//     },
-//   };
-// };
 
 export const getStaticPaths = async () => {
   const posts = await prisma.post.findMany();
@@ -134,15 +102,8 @@ export const getStaticPaths = async () => {
     fallback: false,
   };
 };
-// export const getStaticPaths = async () => {
-//   return {
-//     paths: [],
-//     fallback: "blocking",
-//   };
-// };
 
 export const getStaticProps = async context => {
-  console.log(context);
   const post = await prisma.post.findUnique({
     where: { id: Number(context.params.id) },
     include: {

@@ -72,6 +72,8 @@ export default function PostSmall({
       </div>
       <div className="flex flex-col items-center pb-3">
         <PostActions
+          code={post.code}
+          title={post?.title ? post.title : ""}
           onComment={onComment}
           onLike={onLike}
           onShare={onShare}

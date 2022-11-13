@@ -43,6 +43,37 @@ export default async function handle(req, res) {
             post(req, res)
             break
         case 'GET':
+            const session = await unstable_getServerSession(req, res, authOptions)
+            if (session) {
+                const prismaUser = await prisma.user.findUnique({
+                    where: { email: session.user.email },
+                });
+                const likes = await prisma.like.findMany({
+                    where: {
+                        userId: prismaUser.id,
+                    },
+                });
+                likes.map(async like => {
+                    const newPost = await prisma.post.update({
+                        where: {
+                            id: like.postId,
+                        },
+                        data: {
+                            liked: like.liked,
+                        },
+                    });
+                });
+            }
+            if (!session) {
+                await prisma.post.updateMany({
+                    where: {
+                        liked: true
+                    },
+                    data: {
+                        liked: false
+                    }
+                })
+            }
             const id = req.query.id
             const comments = await prisma.comment.findMany({
                 where: {

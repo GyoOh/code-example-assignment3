@@ -31,6 +31,15 @@ export default async function handle(req, res) {
                 })
                 res.status(200).json({ posts, comments })
             } else {
+
+                await prisma.post.updateMany({
+                    where: {
+                        liked: true
+                    },
+                    data: {
+                        liked: false
+                    }
+                })
                 res.status(401).json({ error: 'Unauthorized' })
             }
             break

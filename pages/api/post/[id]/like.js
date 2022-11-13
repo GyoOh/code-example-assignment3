@@ -103,24 +103,30 @@ export default async function handle(req, res) {
                     where: { email: session.user.email },
                 });
                 const likes = await prisma.like.findMany({
-                    where: {
+                    where:
+                    {
                         userId: prismaUser.id,
                     },
-                });
+                    include: {
+                        user: true,
+                        post: true,
+                    }
+                })
                 likes.map(async like => {
-                    const newPost = await prisma.post.update({
-                        where: {
-                            AND: [
-                                {
-                                    id: like.postId
-                                }, { userId: prismaUser.id }
-                            ]
-                        },
-                        data: {
-                            liked: like.liked
-                        }
-                    })
-                });
+                    if (like.userId == prismaUser.id) {
+                        const newPost = await prisma.post.update({
+                            include: {
+                                user: true,
+                            },
+                            where: {
+                                id: like.postId,
+                            },
+                            data: {
+                                liked: like.liked,
+                            }
+                        })
+                    }
+                })
                 const post = await prisma.post.findUnique({
                     where: {
                         id: Number(id)
@@ -133,6 +139,15 @@ export default async function handle(req, res) {
                 })
                 res.status(200).json(post)
             } else {
+
+                await prisma.post.updateMany({
+                    where: {
+                        liked: true
+                    },
+                    data: {
+                        liked: false
+                    }
+                })
                 const post = await prisma.post.findUnique({
                     where: {
                         id: Number(id)

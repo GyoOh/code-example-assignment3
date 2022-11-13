@@ -57,7 +57,6 @@ const post = async (req, res) => {
         }
     })
     const likesCount = likes.likes.filter(like => like.liked).length
-    console.log(likesCount)
     const newPost = await prisma.post.update({
         where: {
             id: Number(postId),

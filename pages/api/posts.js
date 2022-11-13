@@ -50,12 +50,16 @@ export default async function handle(req, res) {
                 const likes = await prisma.like.findMany({
                     where: {
                         userId: prismaUser.id,
-                    },
+                    }
                 })
                 likes.map(async like => {
                     const newPost = await prisma.post.update({
                         where: {
-                            id: like.postId
+                            AND: [
+                                {
+                                    id: like.postId
+                                }, { userId: prismaUser.id }
+                            ]
                         },
                         data: {
                             liked: like.liked
@@ -91,6 +95,7 @@ export default async function handle(req, res) {
                         liked: false
                     }
                 })
+                console.log(posts)
                 res.status(200).json({ posts })
                 break
             }

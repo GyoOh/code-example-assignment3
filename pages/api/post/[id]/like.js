@@ -110,12 +110,16 @@ export default async function handle(req, res) {
                 likes.map(async like => {
                     const newPost = await prisma.post.update({
                         where: {
-                            id: like.postId,
+                            AND: [
+                                {
+                                    id: like.postId
+                                }, { userId: prismaUser.id }
+                            ]
                         },
                         data: {
-                            liked: like.liked,
-                        },
-                    });
+                            liked: like.liked
+                        }
+                    })
                 });
                 const post = await prisma.post.findUnique({
                     where: {

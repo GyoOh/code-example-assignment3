@@ -29,16 +29,12 @@ export default function Detail({ post }) {
   async function likeHandler() {
     const res = await axios.post(`/api/post/${post.id}/like`, {
       postId: post.id,
-      liked: newPost.liked ? newPost.liked : post.liked,
+      liked: newPost.id ? newPost.liked : post.liked,
     });
-
     if (!res.data.session) {
       signIn();
     }
-    setNewPost(res.data.newPost);
-    mutate();
-    route.replace(route.asPath);
-    return;
+    return setNewPost(res.data.post);
   }
   const commentHandler = () => {
     setIsclicked(!isClicked);
@@ -56,7 +52,6 @@ export default function Detail({ post }) {
     route.replace(route.asPath);
     return;
   };
-  console.log("newPost", newPost);
   if (!data) return <Loader />;
   return (
     <>
@@ -68,8 +63,8 @@ export default function Detail({ post }) {
             <title>{post.title}</title>
           </Head>
           <Post
-            post={newPost ? newPost : post}
-            liked={newPost?.liked ? newPost.liked : post.liked}
+            post={newPost?.id ? newPost : post}
+            liked={newPost?.id ? newPost.liked : post.liked}
             onComment={commentHandler}
             onLike={likeHandler}
             user={post.user ? post.user : null}

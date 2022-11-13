@@ -14,7 +14,7 @@ const post = async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' })
     }
     const { postId, liked } = req.body
-    const post = await prisma.post.update({
+    await prisma.post.update({
         where: {
             id: Number(postId),
         },
@@ -57,6 +57,7 @@ const post = async (req, res) => {
         }
     })
     const likesCount = likes.likes.filter(like => like.liked).length
+    console.log(likesCount)
     const newPost = await prisma.post.update({
         where: {
             id: Number(postId),
@@ -70,8 +71,17 @@ const post = async (req, res) => {
             totalLikes: likesCount,
         }
     })
-    console.log(newPost)
-    res.status(201).json({ newPost, session })
+    const post = await prisma.post.findUnique({
+        where: {
+            id: Number(postId),
+        },
+        include: {
+            comments: true,
+            user: true,
+            likes: true,
+        }
+    })
+    res.status(201).json({ post, session })
     return
 }
 
@@ -108,7 +118,7 @@ export default async function handle(req, res) {
                         },
                     });
                 });
-                const posts = await prisma.post.findMany({
+                const post = await prisma.post.findUnique({
                     where: {
                         id: Number(id)
                     },
@@ -118,16 +128,19 @@ export default async function handle(req, res) {
                         likes: true,
                     },
                 })
-                res.status(200).json(posts)
+                res.status(200).json(post)
             } else {
-                const posts = await prisma.post.findMany({
+                const post = await prisma.post.findUnique({
+                    where: {
+                        id: Number(id)
+                    },
                     include: {
                         comments: true,
                         user: true,
                         likes: true,
                     },
                 })
-                res.status(200).json(posts)
+                res.status(200).json(post)
             }
             break
         default:

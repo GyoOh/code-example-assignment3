@@ -5,25 +5,13 @@ import { authOptions } from "../../auth/[...nextauth]"
 const post = async (req, res) => {
     const session = await unstable_getServerSession(req, res, authOptions)
     if (!session) {
-        const posts = await prisma.post.findMany({
-            orderBy: {
-                createdAt: 'desc'
-            },
-            include: {
-                user: true,
-                comments: true,
-                likes: true,
-            }
-        })
-        res.status(200).json({ session })
-        return res.redirect('/')
+        return res.status(200).json({ session })
     }
     const prismaUser = await prisma.user.findUnique({
         where: { email: session.user.email },
     })
     if (!prismaUser) {
         return res.status(401).json({ error: 'Unauthorized' })
-
     }
     const { postId, liked } = req.body
     const post = await prisma.post.update({
@@ -36,7 +24,7 @@ const post = async (req, res) => {
             likes: true,
         },
         data: {
-            liked: liked ? false : true,
+            liked: !liked,
             likes: {
                 upsert: {
                     where: {
@@ -46,7 +34,7 @@ const post = async (req, res) => {
                         }
                     },
                     update: {
-                        liked: liked ? false : true,
+                        liked: !liked,
                     },
                     create: {
                         userId: prismaUser.id,
@@ -82,6 +70,7 @@ const post = async (req, res) => {
             totalLikes: likesCount,
         }
     })
+    console.log(newPost)
     res.status(201).json({ newPost, session })
     return
 }

@@ -15,7 +15,7 @@ const fetcher = (...args) => fetch(...args).then(res => res.json());
 export default function Detail({ post }) {
   const [loading, setLoading] = useState(false);
   const [isClicked, setIsclicked] = useState(true);
-  const [newPost, setNewPost] = useState([]);
+  const [newPost, setNewPost] = useState("");
   const { data, mutate } = useSWR(`/api/post/${post.id}`, fetcher);
   const route = useRouter();
 
@@ -27,18 +27,17 @@ export default function Detail({ post }) {
   }, []);
 
   async function likeHandler() {
-    const res = axios.post(`/api/post/${post.id}/like`, {
+    const res = await axios.post(`/api/post/${post.id}/like`, {
       postId: post.id,
       liked: newPost.liked ? newPost.liked : post.liked,
     });
-    const response = await res;
-    if (!response.data.session) {
+
+    if (!res.data.session) {
       signIn();
     }
-    setNewPost(response.data.newPost);
+    setNewPost(res.data.newPost);
     mutate();
     route.replace(route.asPath);
-
     return;
   }
   const commentHandler = () => {
@@ -57,6 +56,7 @@ export default function Detail({ post }) {
     route.replace(route.asPath);
     return;
   };
+  console.log("newPost", newPost);
   if (!data) return <Loader />;
   return (
     <>
@@ -68,7 +68,7 @@ export default function Detail({ post }) {
             <title>{post.title}</title>
           </Head>
           <Post
-            post={newPost?.post ? newPost.post : post}
+            post={newPost ? newPost : post}
             liked={newPost?.liked ? newPost.liked : post.liked}
             onComment={commentHandler}
             onLike={likeHandler}

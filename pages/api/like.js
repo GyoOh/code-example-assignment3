@@ -15,7 +15,7 @@ const post = async (req, res) => {
         res.status(401).json({ error: 'Unauthorized' })
         return
     }
-    const { id, liked, totalLikes } = req.body
+    const { id, liked } = req.body
 
     const post = await prisma.post.update({
         where: {
@@ -27,7 +27,7 @@ const post = async (req, res) => {
             likes: true,
         },
         data: {
-            liked: liked ? false : true,
+            liked: !liked,
             likes: {
                 upsert: {
                     where: {
@@ -37,7 +37,7 @@ const post = async (req, res) => {
                         }
                     },
                     update: {
-                        liked: liked ? false : true,
+                        liked: !liked,
                     },
                     create: {
                         userId: prismaUser.id,
@@ -47,7 +47,6 @@ const post = async (req, res) => {
             }
         }
     })
-    console.log(post)
     const likes = await prisma.post.findUnique({
         where: {
             id: Number(id),

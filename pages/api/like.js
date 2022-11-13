@@ -1,7 +1,6 @@
 import { prisma } from '../../server/db/client'
 import { unstable_getServerSession } from "next-auth/next"
 import { authOptions } from "./auth/[...nextauth]"
-import { useSession, signIn, signOut } from "next-auth/react";
 
 const post = async (req, res) => {
     const session = await unstable_getServerSession(req, res, authOptions)
@@ -48,6 +47,7 @@ const post = async (req, res) => {
             }
         }
     })
+    console.log(post)
     const likes = await prisma.post.findUnique({
         where: {
             id: Number(id),

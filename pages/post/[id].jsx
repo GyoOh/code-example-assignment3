@@ -5,29 +5,35 @@ import NewPostForm from "../../components/CommentForm";
 import Comments from "../../components/Comments";
 import axios from "axios";
 import { prisma } from "../../server/db/client";
-import useSWR from "swr";
 import Head from "next/head";
 import Loader from "../../components/Loader";
 import { signIn } from "next-auth/react";
 
-const fetcher = (...args) => fetch(...args).then(res => res.json());
-
 export default function Detail({ post }) {
   const [isClicked, setIsclicked] = useState(true);
   const [newPost, setNewPost] = useState("");
-  const { data, mutate } = useSWR(`/api/post/${post.id}`, fetcher);
+  const [data, setData] = useState([]);
   const route = useRouter();
+  useEffect(() => {
+    (async () => {
+      const res = await axios.get(`/api/post/${post.id}`);
+
+      setData(res.data);
+    })();
+  }, []);
+  console.log("data", data);
 
   async function likeHandler() {
     const res = await axios.post(`/api/post/${post.id}/like`, {
       postId: post.id,
-      liked: newPost.id ? newPost.liked : post.liked,
-      totalLikes: newPost.id ? newPost.totalLikes : post.totalLikes,
+      liked: newPost?.post?.id ? newPost.post.liked : post.liked,
+      totalLikes: newPost?.post?.id ? newPost.post.totalLikes : post.totalLikes,
     });
     if (!res.data.session) {
       signIn();
     }
-    return setNewPost(res.data.post);
+
+    return setNewPost(res.data);
   }
   const commentHandler = () => {
     setIsclicked(!isClicked);
@@ -41,8 +47,7 @@ export default function Detail({ post }) {
     if (!res.data.session) {
       signIn();
     }
-    mutate();
-    route.replace(route.asPath);
+    setNewPost(res.data);
     return;
   };
   if (!data) return <Loader />;
@@ -53,8 +58,8 @@ export default function Detail({ post }) {
           <title>{post.title}</title>
         </Head>
         <Post
-          post={newPost?.id ? newPost : post}
-          liked={newPost?.id ? newPost.liked : post.liked}
+          post={newPost?.post?.id ? newPost.post : post}
+          liked={newPost?.post?.id ? newPost.post.liked : post.liked}
           onComment={commentHandler}
           onLike={likeHandler}
           user={post.user ? post.user : null}
@@ -64,9 +69,13 @@ export default function Detail({ post }) {
           <>
             <NewPostForm
               onSubmit={commentSubmitHandler}
-              user={post.user ? post.user : null}
+              user={data?.prismaUser}
             />
-            <Comments comments={data} />
+            {data?.comments ? (
+              <Comments
+                comments={newPost?.id ? newPost.comments : data?.comments}
+              />
+            ) : null}
           </>
         ) : null}
       </div>

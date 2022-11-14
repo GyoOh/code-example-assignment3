@@ -15,7 +15,7 @@ const post = async (req, res) => {
 
     }
     const { comment, postId } = req.body
-    const post = await prisma.post.update({
+    const newPost = await prisma.post.update({
         where: {
             id: Number(postId)
         },
@@ -30,7 +30,30 @@ const post = async (req, res) => {
             }
         }
     })
-    res.status(201).json({ post, session })
+    const post = await prisma.post.findUnique({
+        where: {
+            id: Number(postId)
+        },
+        include: {
+            comments: {
+                include: {
+                    user: true
+                }
+            },
+            user: true,
+            likes: true
+        }
+    })
+    const comments = await prisma.comment.findMany({
+        where: {
+            postId: Number(postId)
+        },
+        include: {
+            user: true,
+            post: true
+        }
+    })
+    res.status(201).json({ post, session, comments })
     return
 }
 
@@ -48,6 +71,7 @@ export default async function handle(req, res) {
                 const prismaUser = await prisma.user.findUnique({
                     where: { email: session.user.email },
                 });
+
                 const likes = await prisma.like.findMany({
                     where: {
                         AND: [
@@ -75,6 +99,17 @@ export default async function handle(req, res) {
                         },
                     });
                 });
+
+                const comments = await prisma.comment.findMany({
+                    where: {
+                        postId: Number(req.query.id),
+                    },
+                    include: {
+                        user: true,
+
+                    },
+                });
+                return res.status(200).json({ prismaUser, comments })
             }
             if (!session) {
                 await prisma.post.updateMany({
@@ -99,7 +134,7 @@ export default async function handle(req, res) {
                     post: true
                 }
             })
-            res.status(200).json(comments)
+            res.status(200).json({ comments })
             break
         default:
             res.status(405).end(`Method ${method} Not Allowed`)

@@ -77,7 +77,16 @@ const post = async (req, res) => {
             likes: true,
         }
     })
-    res.status(201).json({ post, session })
+    const comments = await prisma.comment.findMany({
+        where: {
+            postId: Number(postId),
+        },
+        include: {
+            user: true,
+            post: true,
+        }
+    })
+    res.status(201).json({ post, session, comments })
     return
 }
 

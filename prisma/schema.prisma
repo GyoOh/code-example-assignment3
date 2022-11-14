@@ -55,12 +55,10 @@ model Like {
   liked     Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-  userId    String   @unique
+  userId    String
   user      User?    @relation(fields: [userId], references: [id])
   postId    Int?
   post      Post?    @relation(fields: [postId], references: [id])
-
-  @@unique([userId, postId])
 }
 
 model Account {

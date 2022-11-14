@@ -15,7 +15,7 @@ const post = async (req, res) => {
         res.status(401).json({ error: 'Unauthorized' })
         return
     }
-    const { id, liked } = req.body
+    const { id, liked, totalLikes } = req.body
 
     const post = await prisma.post.update({
         where: {
@@ -27,7 +27,7 @@ const post = async (req, res) => {
             likes: true,
         },
         data: {
-            liked: !liked,
+            liked: liked ? false : true,
             likes: {
                 upsert: {
                     where: {
@@ -37,7 +37,7 @@ const post = async (req, res) => {
                         }
                     },
                     update: {
-                        liked: !liked,
+                        liked: liked ? false : true,
                     },
                     create: {
                         userId: prismaUser.id,
@@ -84,10 +84,7 @@ const post = async (req, res) => {
         }
     })
     return res.status(201).json({ posts, session })
-
 }
-
-
 export default async function handle(req, res) {
     const { method } = req
     switch (method) {

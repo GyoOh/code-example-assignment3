@@ -31,10 +31,7 @@ const post = async (req, res) => {
             likes: {
                 upsert: {
                     where: {
-                        userId_postId: {
-                            userId: prismaUser.id,
-                            postId: Number(id),
-                        }
+                        userId: prismaUser.id,
                     },
                     update: {
                         liked: liked ? false : true,

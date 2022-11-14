@@ -24,6 +24,7 @@ export default function Home() {
     }
     return setPosts(res.data);
   };
+  if (!posts) return <Loader />;
   return (
     <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
       <div className="max-w-2xl mx-auto">
@@ -45,9 +46,7 @@ export default function Home() {
                   onShare={() => route.push(`/post/${it.id}`)}
                   user={it.user ? it.user : null}
                   className="my-10"
-                >
-                  {!posts && <Loader />}
-                </PostSmall>
+                ></PostSmall>
               </li>
             ))}
           </ul>

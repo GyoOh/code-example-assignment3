@@ -73,7 +73,7 @@ export default function Detail({ post }) {
             />
             {data?.comments ? (
               <Comments
-                comments={newPost?.id ? newPost.comments : data?.comments}
+                comments={newPost?.post?.id ? newPost.comments : data?.comments}
               />
             ) : null}
           </>

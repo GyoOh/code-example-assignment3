@@ -13,18 +13,10 @@ import { signIn } from "next-auth/react";
 const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 export default function Detail({ post }) {
-  const [loading, setLoading] = useState(false);
   const [isClicked, setIsclicked] = useState(true);
   const [newPost, setNewPost] = useState("");
   const { data, mutate } = useSWR(`/api/post/${post.id}`, fetcher);
   const route = useRouter();
-
-  useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-  }, []);
 
   async function likeHandler() {
     const res = await axios.post(`/api/post/${post.id}/like`, {
@@ -55,32 +47,28 @@ export default function Detail({ post }) {
   if (!data) return <Loader />;
   return (
     <>
-      {loading ? (
-        <Loader />
-      ) : (
-        <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
-          <Head>
-            <title>{post.title}</title>
-          </Head>
-          <Post
-            post={newPost?.id ? newPost : post}
-            liked={newPost?.id ? newPost.liked : post.liked}
-            onComment={commentHandler}
-            onLike={likeHandler}
-            user={post.user ? post.user : null}
-            onShare={shareHandler}
-          />
-          {isClicked ? (
-            <>
-              <NewPostForm
-                onSubmit={commentSubmitHandler}
-                user={post.user ? post.user : null}
-              />
-              <Comments comments={data} />
-            </>
-          ) : null}
-        </div>
-      )}
+      <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
+        <Head>
+          <title>{post.title}</title>
+        </Head>
+        <Post
+          post={newPost?.id ? newPost : post}
+          liked={newPost?.id ? newPost.liked : post.liked}
+          onComment={commentHandler}
+          onLike={likeHandler}
+          user={post.user ? post.user : null}
+          onShare={shareHandler}
+        />
+        {isClicked ? (
+          <>
+            <NewPostForm
+              onSubmit={commentSubmitHandler}
+              user={post.user ? post.user : null}
+            />
+            <Comments comments={data} />
+          </>
+        ) : null}
+      </div>
     </>
   );
 }
@@ -94,7 +82,7 @@ export const getStaticPaths = async () => {
   });
   return {
     paths,
-    fallback: true,
+    fallback: false,
   };
 };
 
@@ -111,5 +99,6 @@ export const getStaticProps = async context => {
     props: {
       post: JSON.parse(JSON.stringify(post)),
     },
+    revalidate: 10,
   };
 };

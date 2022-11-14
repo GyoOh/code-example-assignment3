@@ -16,7 +16,8 @@ const post = async (req, res) => {
         return
     }
     const { id, liked, totalLikes } = req.body
-    const like = await prisma.like.findMany({
+
+    const likeByUserandPost = await prisma.like.findMany({
         where: {
             AND: [
                 {
@@ -32,6 +33,32 @@ const post = async (req, res) => {
             user: true,
         }
     })
+
+    const like = await prisma.like.upsert({
+        where: {
+            id: likeByUserandPost[0]?.id ? likeByUserandPost[0].id : 0,
+        },
+        update: {
+            liked: likeByUserandPost[0]?.liked ? likeByUserandPost[0]?.liked : false,
+        },
+        create: {
+            userId: prismaUser.id,
+            liked: true,
+            postId: Number(id),
+        },
+    })
+
+    const likeByPost = await prisma.like.findMany({
+        where: {
+            postId: Number(id),
+        },
+        include: {
+            post: true,
+            user: true,
+        }
+    })
+
+
     const post = await prisma.post.update({
         where: {
             id: Number(id),
@@ -43,46 +70,7 @@ const post = async (req, res) => {
         },
         data: {
             liked: liked ? false : true,
-            likes: {
-                upsert: {
-                    where: {
-                        id: like[0]?.id ? like[0].id : 0,
-                    },
-                    update: {
-                        liked: liked ? false : true,
-                    },
-                    create: {
-                        userId: prismaUser.id,
-                        liked: true,
-                    },
-                },
-            }
-        }
-    })
-    const likes = await prisma.post.findUnique({
-        where: {
-            id: Number(id),
-        },
-        select: {
-            likes: {
-                select: {
-                    liked: true,
-                }
-            }
-        }
-    })
-    const likesCount = likes.likes.filter(like => like.liked).length
-    const newPost = await prisma.post.update({
-        where: {
-            id: Number(id),
-        },
-        include: {
-            comments: true,
-            user: true,
-            likes: true,
-        },
-        data: {
-            totalLikes: likesCount,
+            totalLikes: liked ? totalLikes - 1 : totalLikes + 1,
         }
     })
     const posts = await prisma.post.findMany({

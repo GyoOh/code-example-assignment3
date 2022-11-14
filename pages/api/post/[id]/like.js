@@ -13,8 +13,8 @@ const post = async (req, res) => {
     if (!prismaUser) {
         return res.status(401).json({ error: 'Unauthorized' })
     }
-    const { postId, liked } = req.body
-    const like = await prisma.like.findMany({
+    const { postId, liked, totalLikes } = req.body
+    const likeByUserandPost = await prisma.like.findMany({
         where: {
             AND: [
                 {
@@ -30,7 +30,30 @@ const post = async (req, res) => {
             user: true,
         }
     })
-    await prisma.post.update({
+    const like = await prisma.like.upsert({
+        where: {
+            id: likeByUserandPost[0]?.id ? likeByUserandPost[0].id : 0,
+        },
+        update: {
+            liked: likeByUserandPost[0]?.liked ? likeByUserandPost[0]?.liked : false,
+        },
+        create: {
+            userId: prismaUser.id,
+            liked: true,
+            postId: Number(postId),
+        },
+    })
+    const likeByPost = await prisma.like.findMany({
+        where: {
+            postId: Number(postId),
+        },
+        include: {
+            post: true,
+            user: true,
+        }
+    })
+
+    const posts = await prisma.post.update({
         where: {
             id: Number(postId),
         },
@@ -41,46 +64,7 @@ const post = async (req, res) => {
         },
         data: {
             liked: liked ? false : true,
-            likes: {
-                upsert: {
-                    where: {
-                        id: like[0]?.id ? like[0].id : 0,
-                    },
-                    update: {
-                        liked: liked ? false : true,
-                    },
-                    create: {
-                        userId: prismaUser.id,
-                        liked: true,
-                    },
-                },
-            }
-        }
-    })
-    const likes = await prisma.post.findUnique({
-        where: {
-            id: Number(postId),
-        },
-        select: {
-            likes: {
-                select: {
-                    liked: true,
-                }
-            }
-        }
-    })
-    const likesCount = likes.likes.filter(like => like.liked).length
-    const newPost = await prisma.post.update({
-        where: {
-            id: Number(postId),
-        },
-        include: {
-            comments: true,
-            user: true,
-            likes: true,
-        },
-        data: {
-            totalLikes: likesCount,
+            totalLikes: liked ? totalLikes - 1 : totalLikes + 1,
         }
     })
     const post = await prisma.post.findUnique({
@@ -115,6 +99,7 @@ export default async function handle(req, res) {
                 const prismaUser = await prisma.user.findUnique({
                     where: { email: session.user.email },
                 });
+
                 const likes = await prisma.like.findMany({
                     where:
                     {

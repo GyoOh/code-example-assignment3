@@ -22,6 +22,7 @@ export default function Detail({ post }) {
     const res = await axios.post(`/api/post/${post.id}/like`, {
       postId: post.id,
       liked: newPost.id ? newPost.liked : post.liked,
+      totalLikes: newPost.id ? newPost.totalLikes : post.totalLikes,
     });
     if (!res.data.session) {
       signIn();

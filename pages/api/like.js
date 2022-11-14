@@ -16,7 +16,22 @@ const post = async (req, res) => {
         return
     }
     const { id, liked, totalLikes } = req.body
-
+    const like = await prisma.like.findMany({
+        where: {
+            AND: [
+                {
+                    userId: prismaUser.id,
+                },
+                {
+                    postId: Number(id),
+                }
+            ]
+        },
+        include: {
+            post: true,
+            user: true,
+        }
+    })
     const post = await prisma.post.update({
         where: {
             id: Number(id),
@@ -31,7 +46,7 @@ const post = async (req, res) => {
             likes: {
                 upsert: {
                     where: {
-                        userId: prismaUser.id,
+                        id: like[0]?.id ? like[0].id : 0,
                     },
                     update: {
                         liked: liked ? false : true,

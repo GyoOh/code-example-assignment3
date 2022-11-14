@@ -14,6 +14,22 @@ const post = async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized' })
     }
     const { postId, liked } = req.body
+    const like = await prisma.like.findMany({
+        where: {
+            AND: [
+                {
+                    userId: prismaUser.id,
+                },
+                {
+                    postId: Number(postId),
+                }
+            ]
+        },
+        include: {
+            post: true,
+            user: true,
+        }
+    })
     await prisma.post.update({
         where: {
             id: Number(postId),
@@ -24,14 +40,14 @@ const post = async (req, res) => {
             likes: true,
         },
         data: {
-            liked: !liked,
+            liked: liked ? false : true,
             likes: {
                 upsert: {
                     where: {
-                        userId: prismaUser.id,
+                        id: like[0]?.id ? like[0].id : 0,
                     },
                     update: {
-                        liked: !liked,
+                        liked: liked ? false : true,
                     },
                     create: {
                         userId: prismaUser.id,

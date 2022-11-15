@@ -7,13 +7,18 @@ import axios from "axios";
 import { prisma } from "../../server/db/client";
 import Head from "next/head";
 import Loader from "../../components/Loader";
-import { signIn } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 
-export default function Detail({ post }) {
+export default function Detail({ post, likes }) {
   const [isClicked, setIsclicked] = useState(true);
   const [newPost, setNewPost] = useState("");
   const [data, setData] = useState([]);
   const route = useRouter();
+  const session = useSession();
+  const thisLike = likes.find(
+    like => like.user.email == session?.data?.user?.email
+  );
+
   useEffect(() => {
     (async () => {
       const res = await axios.get(`/api/post/${post.id}`);
@@ -30,7 +35,6 @@ export default function Detail({ post }) {
     if (!res.data.session) {
       signIn();
     }
-    console.log("res", res.data);
     return setNewPost(res.data);
   }
   const commentHandler = () => {
@@ -57,7 +61,7 @@ export default function Detail({ post }) {
         </Head>
         <Post
           post={newPost?.post?.id ? newPost.post : post}
-          liked={newPost?.post?.id ? newPost.post.liked : post.liked}
+          liked={newPost?.post?.id ? newPost.post.liked : thisLike?.liked}
           onComment={commentHandler}
           onLike={likeHandler}
           user={post.user ? post.user : null}
@@ -67,7 +71,7 @@ export default function Detail({ post }) {
           <>
             <NewPostForm
               onSubmit={commentSubmitHandler}
-              user={data?.prismaUser}
+              user={session?.data?.user}
             />
             {data?.comments ? (
               <Comments
@@ -103,9 +107,17 @@ export const getStaticProps = async context => {
       comments: true,
     },
   });
+  const likes = await prisma.like.findMany({
+    where: { postId: Number(context.params.id) },
+    include: {
+      user: true,
+    },
+  });
+
   return {
     props: {
       post: JSON.parse(JSON.stringify(post)),
+      likes: JSON.parse(JSON.stringify(likes)),
     },
     revalidate: 10,
   };

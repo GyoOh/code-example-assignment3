@@ -72,14 +72,14 @@ export default async function handle(req, res) {
                     where: { email: session.user.email },
                 });
 
-                const likes = await prisma.like.findMany({
+                const like = await prisma.like.findMany({
                     where: {
                         AND: [
                             {
                                 userId: prismaUser.id,
                             },
                             {
-                                postId: Number(Number(req.query.id)),
+                                postId: Number(req.query.id),
                             }
                         ]
                     },
@@ -89,16 +89,16 @@ export default async function handle(req, res) {
                     }
                 })
 
-                likes.map(async like => {
-                    const newPost = await prisma.post.update({
-                        where: {
-                            id: like.postId,
-                        },
-                        data: {
-                            liked: like.liked,
-                        },
-                    });
+
+                const newPost = await prisma.post.update({
+                    where: {
+                        id: like[0].postId,
+                    },
+                    data: {
+                        liked: like[0].liked,
+                    },
                 });
+
 
                 const comments = await prisma.comment.findMany({
                     where: {
@@ -120,22 +120,23 @@ export default async function handle(req, res) {
                         liked: false
                     }
                 })
+
+                const id = req.query.id
+                const comments = await prisma.comment.findMany({
+                    where: {
+                        postId: Number(id)
+                    },
+                    orderBy: {
+                        createdAt: 'desc'
+                    },
+                    include: {
+                        user: true,
+                        post: true
+                    }
+                })
+                res.status(200).json({ comments })
+                break
             }
-            const id = req.query.id
-            const comments = await prisma.comment.findMany({
-                where: {
-                    postId: Number(id)
-                },
-                orderBy: {
-                    createdAt: 'desc'
-                },
-                include: {
-                    user: true,
-                    post: true
-                }
-            })
-            res.status(200).json({ comments })
-            break
         default:
             res.status(405).end(`Method ${method} Not Allowed`)
     }

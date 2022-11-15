@@ -35,7 +35,7 @@ const post = async (req, res) => {
             id: likeByUserandPost[0]?.id ? likeByUserandPost[0].id : 0,
         },
         update: {
-            liked: likeByUserandPost[0]?.liked ? likeByUserandPost[0]?.liked : false,
+            liked: likeByUserandPost[0]?.id ? !(likeByUserandPost[0].liked) : false,
         },
         create: {
             userId: prismaUser.id,
@@ -64,7 +64,7 @@ const post = async (req, res) => {
         },
         data: {
             liked: liked ? false : true,
-            totalLikes: liked ? totalLikes - 1 : totalLikes + 1,
+            totalLikes: likeByPost.filter(like => like.liked).length,
         }
     })
     const post = await prisma.post.findUnique({
@@ -109,30 +109,33 @@ export default async function handle(req, res) {
                     where: { email: session.user.email },
                 });
 
-                const likes = await prisma.like.findMany({
-                    where:
-                    {
-                        userId: prismaUser.id,
+                const likeByUserandPost = await prisma.like.findMany({
+                    where: {
+                        AND: [
+                            {
+                                userId: prismaUser.id,
+                            },
+                            {
+                                postId: Number(id),
+                            }
+                        ]
                     },
                     include: {
-                        user: true,
                         post: true,
+                        user: true,
                     }
                 })
-                likes.map(async like => {
-                    if (like.userId == prismaUser.id) {
-                        const newPost = await prisma.post.update({
-                            include: {
-                                user: true,
-                            },
-                            where: {
-                                id: like.postId,
-                            },
-                            data: {
-                                liked: like.liked,
-                                totalLikes: like.post.totalLikes,
-                            }
-                        })
+                const updatedPost = await prisma.post.update({
+                    where: {
+                        id: Number(id),
+                    },
+                    include: {
+                        comments: true,
+                        user: true,
+                        likes: true,
+                    },
+                    data: {
+                        liked: likeByUserandPost[0] ? !(likeByUserandPost[0].liked) : false,
                     }
                 })
                 const post = await prisma.post.findUnique({

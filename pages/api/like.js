@@ -39,7 +39,7 @@ const post = async (req, res) => {
             id: likeByUserandPost[0]?.id ? likeByUserandPost[0].id : 0,
         },
         update: {
-            liked: likeByUserandPost[0]?.liked ? likeByUserandPost[0]?.liked : false,
+            liked: likeByUserandPost[0] ? !(likeByUserandPost[0].liked) : false,
         },
         create: {
             userId: prismaUser.id,
@@ -47,7 +47,6 @@ const post = async (req, res) => {
             postId: Number(id),
         },
     })
-
     const likeByPost = await prisma.like.findMany({
         where: {
             postId: Number(id),
@@ -69,8 +68,8 @@ const post = async (req, res) => {
             likes: true,
         },
         data: {
-            liked: liked ? false : true,
-            totalLikes: liked ? totalLikes - 1 : totalLikes + 1,
+            liked: likeByUserandPost[0] ? !(likeByUserandPost[0].liked) : false,
+            totalLikes: likeByPost.filter(like => like.liked).length,
         }
     })
     const posts = await prisma.post.findMany({

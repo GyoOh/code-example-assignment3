@@ -9,12 +9,14 @@ import { signIn } from "next-auth/react";
 export default function Home() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [session, setSession] = useState(null);
 
   useEffect(() => {
     (async () => {
       const res = await axios.get("/api/posts");
       setPosts(res.data);
       setIsLoading(true);
+      setSession(res.data.session);
       setTimeout(() => {
         setIsLoading(false);
       }, 1000);
@@ -59,9 +61,15 @@ export default function Home() {
               ))}
             </ul>
             <p className="text-lg">
-              <Button onClick={() => route.push("/createPost")}>
-                create a Post
-              </Button>
+              {session ? (
+                <Button onClick={() => route.push("/createPost")}>
+                  create a Post
+                </Button>
+              ) : (
+                <Button onClick={() => signIn()}>
+                  Sign in to create a post
+                </Button>
+              )}
             </p>
           </div>
         </div>

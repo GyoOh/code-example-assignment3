@@ -17,7 +17,6 @@ export default function Detail({ post }) {
   useEffect(() => {
     (async () => {
       const res = await axios.get(`/api/post/${post.id}`);
-
       setData(res.data);
     })();
   }, []);

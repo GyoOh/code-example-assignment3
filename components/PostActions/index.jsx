@@ -55,6 +55,7 @@ export default function PostActions({
         >
           <span>&nbsp;</span>
           <ArrowUpTrayIcon className="h-7 w-7" aria-hidden="true" />
+          Share
         </button>
       </RWebShare>
     </div>

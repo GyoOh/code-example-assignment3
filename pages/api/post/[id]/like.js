@@ -130,6 +130,7 @@ export default async function handle(req, res) {
                             },
                             data: {
                                 liked: like.liked,
+                                totalLikes: like.post.totalLikes,
                             }
                         })
                     }

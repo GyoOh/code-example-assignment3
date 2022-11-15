@@ -33,6 +33,7 @@ export default function Detail({ post, likes }) {
       liked: newPost?.post?.id ? newPost.post.liked : post.liked,
       totalLikes: newPost?.post?.id ? newPost.post.totalLikes : post.totalLikes,
     });
+
     if (!res.data.session) {
       signIn();
     }
@@ -53,7 +54,7 @@ export default function Detail({ post, likes }) {
     setNewPost(res.data);
     return;
   };
-  if (!data) return <Loader />;
+  if (!data || !post) return <Loader />;
   return (
     <>
       <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
@@ -122,6 +123,6 @@ export const getStaticProps = async context => {
       post: JSON.parse(JSON.stringify(post)),
       likes: JSON.parse(JSON.stringify(likes)),
     },
-    revalidate: 10,
+    revalidate: 1,
   };
 };

@@ -97,7 +97,13 @@ export default async function handle(req, res) {
                     data: {
                         liked: like[0].liked,
                     },
+                    include: {
+                        comments: true,
+                        user: true,
+                        likes: true,
+                    }
                 });
+
 
 
                 const comments = await prisma.comment.findMany({

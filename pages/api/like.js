@@ -68,7 +68,7 @@ const post = async (req, res) => {
             likes: true,
         },
         data: {
-            liked: likeByUserandPost[0] ? !(likeByUserandPost[0].liked) : false,
+            liked: like.liked,
             totalLikes: likeByPost.filter(like => like.liked).length,
         }
     })

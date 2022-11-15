@@ -20,7 +20,6 @@ export default function Detail({ post }) {
       setData(res.data);
     })();
   }, []);
-  console.log("data", data);
 
   async function likeHandler() {
     const res = await axios.post(`/api/post/${post.id}/like`, {
@@ -31,7 +30,7 @@ export default function Detail({ post }) {
     if (!res.data.session) {
       signIn();
     }
-
+    console.log("res", res.data);
     return setNewPost(res.data);
   }
   const commentHandler = () => {

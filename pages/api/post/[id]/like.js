@@ -63,20 +63,25 @@ const post = async (req, res) => {
             likes: true,
         },
         data: {
-            liked: liked ? false : true,
+            liked: like.liked,
             totalLikes: likeByPost.filter(like => like.liked).length,
         }
     })
     const post = await prisma.post.findUnique({
         where: {
-            id: Number(postId),
+            id: Number(postId)
         },
         include: {
-            comments: true,
+            comments: {
+                include: {
+                    user: true
+                }
+            },
             user: true,
-            likes: true,
+            likes: true
         }
     })
+
     const comments = await prisma.comment.findMany({
         where: {
             postId: Number(postId),

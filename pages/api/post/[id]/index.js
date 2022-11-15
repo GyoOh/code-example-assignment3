@@ -109,7 +109,7 @@ export default async function handle(req, res) {
 
                     },
                 });
-                return res.status(200).json({ prismaUser, comments })
+                return res.status(200).json({ prismaUser, comments, like, newPost })
             }
             if (!session) {
                 await prisma.post.updateMany({

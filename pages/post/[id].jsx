@@ -13,9 +13,10 @@ export default function Detail({ post, likes }) {
   const [isClicked, setIsclicked] = useState(true);
   const [newPost, setNewPost] = useState("");
   const [data, setData] = useState([]);
+  const [updatedPost, setUpdatedPost] = useState({});
   const route = useRouter();
   const session = useSession();
-  const thisLike = likes.find(
+  let thisLike = likes.find(
     like => like.user.email == session?.data?.user?.email
   );
 
@@ -61,7 +62,9 @@ export default function Detail({ post, likes }) {
         </Head>
         <Post
           post={newPost?.post?.id ? newPost.post : post}
-          liked={newPost?.post?.id ? newPost.post.liked : thisLike?.liked}
+          liked={
+            newPost?.post?.id ? newPost.post.liked : thisLike?.liked || false
+          }
           onComment={commentHandler}
           onLike={likeHandler}
           user={post.user ? post.user : null}

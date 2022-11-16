@@ -27,7 +27,7 @@ export default function PostSmall({
       )}
     >
       <div className="flex flex-1 flex-col justify-between p-6 pb-3">
-        <Link href={href}>
+        <Link as={href} href={href}>
           <div className="mt-2 flex items-center">
             <div className="flex-shrink-0 text-gray-100">
               {user?.image && (

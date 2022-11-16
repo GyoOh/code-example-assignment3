@@ -5,6 +5,7 @@ import axios from "axios";
 import PostSmall from "../components/PostSmall";
 import Loader from "../components/Loader";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
@@ -52,8 +53,12 @@ export default function Home() {
                       likeHandler(it.id, it.liked, it.totalLikes);
                     }}
                     href={`/post/${it.id}`}
-                    onComment={() => route.push(`/post/${it.id}`)}
-                    onShare={() => route.push(`/post/${it.id}`)}
+                    onComment={() => (
+                      <Link href={`/post/${it.id}`} as={`/post/${it.id}`} />
+                    )}
+                    onShare={() => (
+                      <Link href={`/post/${it.id}`} as={`/post/${it.id}`} />
+                    )}
                     user={it.user ? it.user : null}
                     className="my-10"
                   ></PostSmall>

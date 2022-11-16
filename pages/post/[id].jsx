@@ -26,7 +26,7 @@ export default function Detail({ post, likes }) {
       setData(res.data);
     })();
   }, []);
-
+  console.log(data);
   async function likeHandler() {
     const res = await axios.post(`/api/post/${post.id}/like`, {
       postId: post.id,
@@ -91,14 +91,16 @@ export default function Detail({ post, likes }) {
 
 export const getStaticPaths = async () => {
   const posts = await prisma.post.findMany();
+
   const paths = posts.map(post => {
     return {
       params: { id: post.id.toString() },
     };
   });
+
   return {
     paths,
-    fallback: false,
+    fallback: true,
   };
 };
 

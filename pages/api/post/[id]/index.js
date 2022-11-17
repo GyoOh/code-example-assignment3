@@ -115,14 +115,15 @@ export default async function handle(req, res) {
                 return res.status(200).json({ prismaUser, comments, post, like: like[0]?.liked ? (like[0].liked) : false })
             }
             if (!session) {
-                await prisma.post.updateMany({
+                const post = await prisma.post.update({
                     where: {
-                        liked: true
+                        id: Number(req.query.id)
                     },
                     data: {
                         liked: false
                     }
                 })
+
 
                 const id = req.query.id
                 const comments = await prisma.comment.findMany({
@@ -137,7 +138,7 @@ export default async function handle(req, res) {
                         post: true
                     }
                 })
-                res.status(200).json({ comments })
+                res.status(200).json({ prismaUser: {}, comments, post, like: false })
                 break
             }
         default:

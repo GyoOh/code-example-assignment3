@@ -41,11 +41,18 @@ export default function Detail({ post, likes }) {
     if (!user) {
       signIn();
     }
-    liked ? setTotalLikes(totalLikes + 1) : setTotalLikes(totalLikes - 1);
-    if (newPost) {
-      setNewPost({ ...newPost, totalLikes });
-    } else {
-      setNewPost({ ...post, totalLikes });
+    if (newPost && liked) {
+      setTotalLikes(totalLikes - 1);
+      setNewPost({ ...newPost, totalLikes: totalLikes - 1 });
+    } else if (newPost && !liked) {
+      setTotalLikes(totalLikes + 1);
+      setNewPost({ ...newPost, totalLikes: totalLikes + 1 });
+    } else if (!newPost && liked) {
+      setTotalLikes(totalLikes - 1);
+      setNewPost({ ...post, totalLikes: totalLikes - 1 });
+    } else if (!newPost && !liked) {
+      setTotalLikes(totalLikes + 1);
+      setNewPost({ ...post, totalLikes: totalLikes + 1 });
     }
     setLiked(!liked);
 

@@ -92,10 +92,10 @@ export default async function handle(req, res) {
 
                 const newPost = await prisma.post.update({
                     where: {
-                        id: like[0].postId,
+                        id: like[0]?.postId ? like[0].postId : Number(req.query.id)
                     },
                     data: {
-                        liked: like[0].liked,
+                        liked: like[0]?.liked ? !(like[0].liked) : false,
                     },
                     include: {
                         comments: true,

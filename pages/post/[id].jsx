@@ -19,7 +19,7 @@ export default function Detail({ post, likes }) {
   let thisLike = likes.find(
     like => like.user.email == session?.data?.user?.email
   );
-
+  console.log(post);
   useEffect(() => {
     (async () => {
       const res = await axios.get(`/api/post/${post.id}`);

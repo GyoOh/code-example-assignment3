@@ -90,17 +90,17 @@ export default function Detail({ post, likes }) {
 }
 
 export const getStaticPaths = async () => {
-  const posts = await prisma.post.findMany();
+  // const posts = await prisma.post.findMany();
 
-  const paths = posts.map(post => {
-    return {
-      params: { id: post.id.toString() },
-    };
-  });
+  // const paths = posts.map(post => {
+  //   return {
+  //     params: { id: post.id.toString() },
+  //   };
+  // });
 
   return {
-    paths,
-    fallback: false,
+    paths: [],
+    fallback: "blocking",
   };
 };
 

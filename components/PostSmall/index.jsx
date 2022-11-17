@@ -51,7 +51,7 @@ export default function PostSmall({
               </div>
               <div className="flex-1 mt-1">
                 <p className="text-xl font-semibold text-gray-100">
-                  {post.title.substring(0, 50)}
+                  {post?.title?.substring(0, 50)}
                 </p>
               </div>
             </div>

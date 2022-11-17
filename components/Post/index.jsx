@@ -15,6 +15,7 @@ export default function Post({
   post,
   user,
   className = "",
+  totalLikes,
 }) {
   return (
     <>
@@ -65,7 +66,7 @@ export default function Post({
           onShare={onShare}
           liked={liked}
           totalComments={post.totalComments}
-          totalLikes={post.totalLikes}
+          totalLikes={totalLikes}
           code={post.code}
           title={post.title}
         />

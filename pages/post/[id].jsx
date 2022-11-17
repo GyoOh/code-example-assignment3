@@ -12,15 +12,7 @@ import { useSession, signIn } from "next-auth/react";
 export default function Detail({ post, likes }) {
   const [isClicked, setIsclicked] = useState(true);
   const [newPost, setNewPost] = useState("");
-  const [data, setData] = useState([]);
-
-  const [updatedPost, setUpdatedPost] = useState({});
-  const route = useRouter();
   const session = useSession();
-  let thisLike = likes.find(
-    like => like.user.email == session?.data?.user?.email
-  );
-
   const [user, setUser] = useState(null);
   const [comments, setComments] = useState([]);
   const [liked, setLiked] = useState(false);
@@ -29,7 +21,6 @@ export default function Detail({ post, likes }) {
   useEffect(() => {
     (async () => {
       const res = await axios.get(`/api/post/${post.id}`);
-      console.log(res.data);
       setUser(res.data.prismaUser);
       setComments(res.data.comments);
       setLiked(res.data.like);
@@ -37,7 +28,7 @@ export default function Detail({ post, likes }) {
       setTotalLikes(Number(res.data.post.totalLikes));
     })();
   }, []);
-  async function likeHandler() {
+  function likeHandler() {
     if (!user) {
       signIn();
     }
@@ -56,7 +47,7 @@ export default function Detail({ post, likes }) {
     }
     setLiked(!liked);
 
-    const res = await axios.post(`/api/post/${post.id}/like`, {
+    axios.post(`/api/post/${post.id}/like`, {
       postId: post.id,
       liked: newPost?.post?.id ? newPost.post.liked : post.liked,
       totalLikes: newPost?.post?.id ? newPost.post.totalLikes : post.totalLikes,
@@ -105,6 +96,7 @@ export default function Detail({ post, likes }) {
           onLike={likeHandler}
           user={post.user ? post.user : null}
           onShare={shareHandler}
+          totalLikes={totalLikes}
         />
         {isClicked ? (
           <>
@@ -121,14 +113,6 @@ export default function Detail({ post, likes }) {
 }
 
 export const getStaticPaths = async () => {
-  // const posts = await prisma.post.findMany();
-
-  // const paths = posts.map(post => {
-  //   return {
-  //     params: { id: post.id.toString() },
-  //   };
-  // });
-
   return {
     paths: [],
     fallback: "blocking",

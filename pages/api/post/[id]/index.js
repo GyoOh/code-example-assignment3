@@ -88,23 +88,20 @@ export default async function handle(req, res) {
                         user: true,
                     }
                 })
-
-
-                const newPost = await prisma.post.update({
+                const post = await prisma.post.findUnique({
                     where: {
-                        id: like[0]?.postId ? like[0].postId : Number(req.query.id)
-                    },
-                    data: {
-                        liked: like[0]?.liked ? !(like[0].liked) : false,
+                        id: Number(req.query.id)
                     },
                     include: {
-                        comments: true,
+                        comments: {
+                            include: {
+                                user: true
+                            }
+                        },
                         user: true,
-                        likes: true,
+                        likes: true
                     }
-                });
-
-
+                })
 
                 const comments = await prisma.comment.findMany({
                     where: {
@@ -115,7 +112,7 @@ export default async function handle(req, res) {
 
                     },
                 });
-                return res.status(200).json({ prismaUser, comments, like, newPost })
+                return res.status(200).json({ prismaUser, comments, post, like: like[0]?.liked ? (like[0].liked) : false })
             }
             if (!session) {
                 await prisma.post.updateMany({

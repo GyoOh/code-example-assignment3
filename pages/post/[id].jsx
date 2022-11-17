@@ -13,48 +13,78 @@ export default function Detail({ post, likes }) {
   const [isClicked, setIsclicked] = useState(true);
   const [newPost, setNewPost] = useState("");
   const [data, setData] = useState([]);
+
   const [updatedPost, setUpdatedPost] = useState({});
   const route = useRouter();
   const session = useSession();
   let thisLike = likes.find(
     like => like.user.email == session?.data?.user?.email
   );
-  console.log(post);
+
+  const [user, setUser] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [liked, setLiked] = useState(false);
+  const [totalComments, setTotalComments] = useState(0);
+  const [totalLikes, setTotalLikes] = useState(0);
   useEffect(() => {
     (async () => {
       const res = await axios.get(`/api/post/${post.id}`);
-      setData(res.data);
+      console.log(res.data);
+      setUser(res.data.prismaUser);
+      setComments(res.data.comments);
+      setLiked(res.data.like);
+      setTotalComments(Number(res.data.post.totalComments));
+      setTotalLikes(Number(res.data.post.totalLikes));
     })();
   }, []);
-  console.log(data);
   async function likeHandler() {
+    if (!user) {
+      signIn();
+    }
+    liked ? setTotalLikes(totalLikes + 1) : setTotalLikes(totalLikes - 1);
+    if (newPost) {
+      setNewPost({ ...newPost, totalLikes });
+    } else {
+      setNewPost({ ...post, totalLikes });
+    }
+    setLiked(!liked);
+
     const res = await axios.post(`/api/post/${post.id}/like`, {
       postId: post.id,
       liked: newPost?.post?.id ? newPost.post.liked : post.liked,
       totalLikes: newPost?.post?.id ? newPost.post.totalLikes : post.totalLikes,
     });
 
-    if (!res.data.session) {
-      signIn();
-    }
-    return setNewPost(res.data);
+    return;
   }
   const commentHandler = () => {
     setIsclicked(!isClicked);
   };
   const shareHandler = () => {};
-  const commentSubmitHandler = async ({ comment }) => {
-    const res = await axios.post(`/api/post/${post.id}`, {
+  const commentSubmitHandler = ({ comment }) => {
+    if (!user) {
+      signIn();
+    }
+    const newComment = {
+      id: totalComments,
+      createdAt: new Date(),
+      content: comment,
+      user: {
+        image: user.image,
+        name: session?.data?.user?.name,
+      },
+    };
+    setComments([...comments, newComment]);
+    setTotalComments(totalComments + 1);
+    setNewPost({ ...post, totalComments: totalComments + 1 });
+    axios.post(`/api/post/${post.id}`, {
       comment,
       postId: Number(post.id),
     });
-    if (!res.data.session) {
-      signIn();
-    }
-    setNewPost(res.data);
+
     return;
   };
-  if (!data || !post) return <Loader />;
+  if (!comments || !post) return <Loader />;
   return (
     <>
       <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
@@ -62,10 +92,8 @@ export default function Detail({ post, likes }) {
           <title>{post.title}</title>
         </Head>
         <Post
-          post={newPost?.post?.id ? newPost.post : post}
-          liked={
-            newPost?.post?.id ? newPost.post.liked : thisLike?.liked || false
-          }
+          post={newPost ? newPost : post}
+          liked={liked}
           onComment={commentHandler}
           onLike={likeHandler}
           user={post.user ? post.user : null}
@@ -75,13 +103,9 @@ export default function Detail({ post, likes }) {
           <>
             <NewPostForm
               onSubmit={commentSubmitHandler}
-              user={session?.data?.user}
+              user={user ? user : null}
             />
-            {data?.comments ? (
-              <Comments
-                comments={newPost?.post?.id ? newPost.comments : data?.comments}
-              />
-            ) : null}
+            {comments && <Comments comments={comments} />}
           </>
         ) : null}
       </div>

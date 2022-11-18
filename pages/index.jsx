@@ -12,10 +12,14 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState(null);
 
+  const [user, setUser] = useState(null);
+  const [totalLikes, setTotalLikes] = useState(0);
+  const [liked, setLiked] = useState(false);
   useEffect(() => {
     (async () => {
       const res = await axios.get("/api/posts");
-      setPosts(res.data);
+      setPosts(res.data.posts);
+      setUser(res.data.user);
       setIsLoading(true);
       setSession(res.data.session);
       setTimeout(() => {
@@ -25,13 +29,48 @@ export default function Home() {
   }, []);
 
   const route = useRouter();
-  const likeHandler = async (id, liked, totalLikes) => {
-    const res = await axios.post("/api/like", { id, liked, totalLikes });
-    if (!res.data.session) {
+  const likeHandler = async (id, liked, totalLikes, post) => {
+    if (!user) {
       return signIn();
     }
-    return setPosts(res.data);
+    const filteredPost = posts.filter(post => post.id !== id);
+    if (liked) {
+      const newPost = { ...post, liked: !liked, totalLikes: totalLikes - 1 };
+      const thisPost = [...posts].map(post => {
+        if (post.id === id) {
+          console.log("post", post);
+          return { ...post, liked: !liked, totalLikes: totalLikes - 1 };
+        } else {
+          return post;
+        }
+      });
+      setPosts(thisPost);
+      // setPosts([...filteredPost, newPost]);
+      // setPosts(posts.sort((a, b) => b.createdAt - a.createdAt));
+    }
+    if (!liked) {
+      const newPost = { ...post, liked: !liked, totalLikes: totalLikes + 1 };
+      const thisPost = [...posts].map(post => {
+        if (post.id === id) {
+          console.log("post", post);
+          return { ...post, liked: !liked, totalLikes: totalLikes + 1 };
+        } else {
+          return post;
+        }
+      });
+      console.log("post", thisPost);
+      setPosts(thisPost);
+      // setPosts([...filteredPost, newPost]);
+      // setPosts(posts.sort((a, b) => b.createdAt - a.createdAt));
+    }
+    // setPosts([...filteredPost, newPost]);
+    // setPosts(posts.sort((a, b) => b.createdAt - a.createdAt));
+
+    // setPosts(posts.sort((a, b) => b.id - a.id));
+
+    return axios.post("/api/like", { id, liked });
   };
+
   if (!posts) return <Loader />;
   return (
     <div className="pt-8 pb-10 lg:pt-12 lg:pb-14 mx-auto max-w-7xl px-2">
@@ -45,12 +84,12 @@ export default function Home() {
           </h1>
           <div className="mt-6 text-gray-300 space-y-6">
             <ul>
-              {posts?.posts?.map(it => (
+              {posts?.map(it => (
                 <li key={it.id}>
                   <PostSmall
                     post={it}
                     onLike={() => {
-                      likeHandler(it.id, it.liked, it.totalLikes);
+                      likeHandler(it.id, it.liked, it.totalLikes, it);
                     }}
                     href={`/post/${it.id}`}
                     onComment={() => (
@@ -66,7 +105,7 @@ export default function Home() {
               ))}
             </ul>
             <p className="text-lg">
-              {session ? (
+              {user ? (
                 <Button onClick={() => route.push("/createPost")}>
                   create a Post
                 </Button>

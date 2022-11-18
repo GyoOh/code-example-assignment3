@@ -49,8 +49,8 @@ export default function Detail({ post, likes }) {
 
     axios.post(`/api/post/${post.id}/like`, {
       postId: post.id,
-      liked: newPost?.post?.id ? newPost.post.liked : post.liked,
-      totalLikes: newPost?.post?.id ? newPost.post.totalLikes : post.totalLikes,
+      liked: !liked,
+      totalLikes: liked ? totalLikes - 1 : totalLikes + 1,
     });
 
     return;

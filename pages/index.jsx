@@ -10,11 +10,7 @@ import Link from "next/link";
 export default function Home() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [session, setSession] = useState(null);
-
   const [user, setUser] = useState(null);
-  const [totalLikes, setTotalLikes] = useState(0);
-  const [liked, setLiked] = useState(false);
   useEffect(() => {
     (async () => {
       const res = await axios.get("/api/posts");
@@ -33,9 +29,7 @@ export default function Home() {
     if (!user) {
       return signIn();
     }
-    const filteredPost = posts.filter(post => post.id !== id);
     if (liked) {
-      const newPost = { ...post, liked: !liked, totalLikes: totalLikes - 1 };
       const thisPost = [...posts].map(post => {
         if (post.id === id) {
           console.log("post", post);
@@ -45,29 +39,17 @@ export default function Home() {
         }
       });
       setPosts(thisPost);
-      // setPosts([...filteredPost, newPost]);
-      // setPosts(posts.sort((a, b) => b.createdAt - a.createdAt));
     }
     if (!liked) {
-      const newPost = { ...post, liked: !liked, totalLikes: totalLikes + 1 };
       const thisPost = [...posts].map(post => {
         if (post.id === id) {
-          console.log("post", post);
           return { ...post, liked: !liked, totalLikes: totalLikes + 1 };
         } else {
           return post;
         }
       });
-      console.log("post", thisPost);
       setPosts(thisPost);
-      // setPosts([...filteredPost, newPost]);
-      // setPosts(posts.sort((a, b) => b.createdAt - a.createdAt));
     }
-    // setPosts([...filteredPost, newPost]);
-    // setPosts(posts.sort((a, b) => b.createdAt - a.createdAt));
-
-    // setPosts(posts.sort((a, b) => b.id - a.id));
-
     return axios.post("/api/like", { id, liked });
   };
 

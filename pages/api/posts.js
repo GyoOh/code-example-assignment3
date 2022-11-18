@@ -54,16 +54,6 @@ export default async function handle(req, res) {
                         post: true,
                     },
                 });
-                // likes.map(like => {
-                //     const updatePost = prisma.post.update({
-                //         where: {
-                //             id: like.postId,
-                //         },
-                //         data: {
-                //             liked: like.liked,
-                //         }
-                //     })
-                // })
                 const user = await prisma.user.findUnique({
                     where: {
                         email: session.user.email,

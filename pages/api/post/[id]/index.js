@@ -72,7 +72,7 @@ export default async function handle(req, res) {
                     where: { email: session.user.email },
                 });
 
-                const like = await prisma.like.findMany({
+                const [like] = await prisma.like.findMany({
                     where: {
                         AND: [
                             {
@@ -112,7 +112,7 @@ export default async function handle(req, res) {
 
                     },
                 });
-                return res.status(200).json({ prismaUser, comments, post, like: like[0] ? (like[0].liked) : false })
+                return res.status(200).json({ prismaUser, comments, post, like: like ? like.liked : false })
             }
             if (!session) {
                 const post = await prisma.post.update({

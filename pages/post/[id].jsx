@@ -12,7 +12,7 @@ import { useSession, signIn } from "next-auth/react";
 export default function Detail({ post, likes }) {
   const [isClicked, setIsclicked] = useState(true);
   const [newPost, setNewPost] = useState("");
-  const session = useSession();
+  const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [comments, setComments] = useState([]);
   const [liked, setLiked] = useState(false);
@@ -21,6 +21,7 @@ export default function Detail({ post, likes }) {
   useEffect(() => {
     (async () => {
       const res = await axios.get(`/api/post/${post.id}`);
+      setSession(res.data.session);
       setUser(res.data.prismaUser);
       setComments(res.data.comments);
       setLiked(res.data.like);
@@ -29,8 +30,8 @@ export default function Detail({ post, likes }) {
     })();
   }, []);
   function likeHandler() {
-    if (!user) {
-      signIn();
+    if (!session) {
+      return signIn();
     }
     if (newPost && liked) {
       setTotalLikes(totalLikes - 1);
@@ -60,8 +61,8 @@ export default function Detail({ post, likes }) {
   };
   const shareHandler = () => {};
   const commentSubmitHandler = ({ comment }) => {
-    if (!user) {
-      signIn();
+    if (!session) {
+      return signIn();
     }
     const newComment = {
       id: totalComments,

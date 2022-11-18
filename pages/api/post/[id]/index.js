@@ -112,7 +112,7 @@ export default async function handle(req, res) {
 
                     },
                 });
-                return res.status(200).json({ prismaUser, comments, post, like: like ? like.liked : false })
+                return res.status(200).json({ session, prismaUser, comments, post, like: like ? like.liked : false })
             }
             if (!session) {
                 const post = await prisma.post.update({
@@ -138,7 +138,7 @@ export default async function handle(req, res) {
                         post: true
                     }
                 })
-                res.status(200).json({ prismaUser: {}, comments, post, like: false })
+                res.status(200).json({ session, prismaUser: {}, comments, post, like: false })
                 break
             }
         default:

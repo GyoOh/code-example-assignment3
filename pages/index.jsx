@@ -11,9 +11,11 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   useEffect(() => {
     (async () => {
       const res = await axios.get("/api/posts");
+      setSession(res.data.session);
       setPosts(res.data.posts);
       setUser(res.data.user);
       setIsLoading(true);
@@ -25,7 +27,7 @@ export default function Home() {
 
   const route = useRouter();
   const likeHandler = async (id, liked, totalLikes, post) => {
-    if (!user) {
+    if (!session) {
       return signIn();
     }
     if (liked) {

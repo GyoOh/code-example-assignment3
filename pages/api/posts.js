@@ -75,7 +75,8 @@ export default async function handle(req, res) {
                         likes: true,
                     },
                 });
-                res.status(200).json({ posts, user });
+
+                res.status(200).json({ posts, user, likes, session });
                 return;
             } else {
                 const updated = await prisma.post.updateMany({
@@ -97,7 +98,7 @@ export default async function handle(req, res) {
                     },
                 });
 
-                res.status(200).json({ posts, user: {} });
+                res.status(200).json({ posts, user: {}, session });
                 break;
             }
         default:

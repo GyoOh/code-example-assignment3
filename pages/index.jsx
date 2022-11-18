@@ -17,7 +17,6 @@ export default function Home() {
       setPosts(res.data.posts);
       setUser(res.data.user);
       setIsLoading(true);
-      setSession(res.data.session);
       setTimeout(() => {
         setIsLoading(false);
       }, 1000);

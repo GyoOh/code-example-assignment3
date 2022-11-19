@@ -33,6 +33,11 @@ export default function Detail({ post, likes }) {
     if (!session) {
       return signIn();
     }
+    axios.post(`/api/post/${post.id}/like`, {
+      postId: post.id,
+      liked: !liked,
+      totalLikes: liked ? totalLikes - 1 : totalLikes + 1,
+    });
     if (newPost && liked) {
       setTotalLikes(totalLikes - 1);
       setNewPost({ ...newPost, totalLikes: totalLikes - 1 });
@@ -48,12 +53,6 @@ export default function Detail({ post, likes }) {
     }
     setLiked(!liked);
 
-    axios.post(`/api/post/${post.id}/like`, {
-      postId: post.id,
-      liked: !liked,
-      totalLikes: liked ? totalLikes - 1 : totalLikes + 1,
-    });
-
     return;
   }
   const commentHandler = () => {
@@ -64,6 +63,10 @@ export default function Detail({ post, likes }) {
     if (!session) {
       return signIn();
     }
+    axios.post(`/api/post/${post.id}`, {
+      comment,
+      postId: Number(post.id),
+    });
     const newComment = {
       id: totalComments,
       createdAt: new Date(),
@@ -76,10 +79,6 @@ export default function Detail({ post, likes }) {
     setComments([...comments, newComment]);
     setTotalComments(totalComments + 1);
     setNewPost({ ...post, totalComments: totalComments + 1 });
-    axios.post(`/api/post/${post.id}`, {
-      comment,
-      postId: Number(post.id),
-    });
 
     return;
   };

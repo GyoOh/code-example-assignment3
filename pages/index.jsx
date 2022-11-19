@@ -11,10 +11,13 @@ export default function Home() {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [user, setUser] = useState(null);
+  const [likes, setLikes] = useState([]);
   const [session, setSession] = useState(null);
+  const [newPost, setNewPost] = useState(null);
   useEffect(() => {
     (async () => {
       const res = await axios.get("/api/posts");
+      setLikes(res.data.likes);
       setSession(res.data.session);
       setPosts(res.data.posts);
       setUser(res.data.user);
@@ -24,16 +27,28 @@ export default function Home() {
       }, 1000);
     })();
   }, []);
+  useEffect(() => {
+    likes.find(like => {
+      const thisPost = posts.map(post => {
+        if (like.postId === post.id) {
+          return { ...post, liked: like.liked };
+        } else {
+          return post;
+        }
+      });
+      setPosts(thisPost);
+    });
+  }, [session]);
 
   const route = useRouter();
-  const likeHandler = async (id, liked, totalLikes, post) => {
+  const likeHandler = async (id, liked, totalLikes) => {
     if (!session) {
       return signIn();
     }
+    axios.post("/api/like", { id, liked });
     if (liked) {
       const thisPost = [...posts].map(post => {
         if (post.id === id) {
-          console.log("post", post);
           return { ...post, liked: !liked, totalLikes: totalLikes - 1 };
         } else {
           return post;
@@ -51,7 +66,7 @@ export default function Home() {
       });
       setPosts(thisPost);
     }
-    return axios.post("/api/like", { id, liked });
+    return;
   };
 
   if (!posts) return <Loader />;
@@ -72,7 +87,7 @@ export default function Home() {
                   <PostSmall
                     post={it}
                     onLike={() => {
-                      likeHandler(it.id, it.liked, it.totalLikes, it);
+                      likeHandler(it.id, it.liked, it.totalLikes);
                     }}
                     href={`/post/${it.id}`}
                     onComment={() => (

@@ -15,7 +15,7 @@ const post = async (req, res) => {
         res.status(401).json({ error: 'Unauthorized' })
         return
     }
-    const { id, liked, totalLikes } = req.body
+    const { id } = req.body
 
     const likeByUserandPost = await prisma.like.findMany({
         where: {

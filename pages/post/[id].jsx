@@ -1,13 +1,12 @@
 import Post from "../../components/Post";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
 import NewPostForm from "../../components/CommentForm";
 import Comments from "../../components/Comments";
 import axios from "axios";
 import { prisma } from "../../server/db/client";
 import Head from "next/head";
 import Loader from "../../components/Loader";
-import { useSession, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 
 export default function Detail({ post, likes }) {
   const [isClicked, setIsclicked] = useState(true);
@@ -23,10 +22,10 @@ export default function Detail({ post, likes }) {
       const res = await axios.get(`/api/post/${post.id}`);
       setSession(res.data.session);
       setUser(res.data.prismaUser);
-      setComments(res.data.comments);
       setLiked(res.data.like);
       setTotalComments(Number(res.data.post.totalComments));
       setTotalLikes(Number(res.data.post.totalLikes));
+      setComments(res.data.comments);
     })();
   }, []);
   function likeHandler() {

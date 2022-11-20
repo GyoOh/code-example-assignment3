@@ -13,7 +13,6 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [likes, setLikes] = useState([]);
   const [session, setSession] = useState(null);
-  const [newPost, setNewPost] = useState(null);
   useEffect(() => {
     (async () => {
       const res = await axios.get("/api/posts");

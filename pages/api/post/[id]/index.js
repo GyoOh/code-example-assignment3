@@ -83,11 +83,8 @@ export default async function handle(req, res) {
                             }
                         ]
                     },
-                    include: {
-                        post: true,
-                        user: true,
-                    }
                 })
+
                 const post = await prisma.post.findUnique({
                     where: {
                         id: Number(req.query.id)
@@ -109,10 +106,12 @@ export default async function handle(req, res) {
                     },
                     include: {
                         user: true,
-
                     },
                 });
-                return res.status(200).json({ session, prismaUser, comments, post, like: like ? like.liked : false })
+                if (like) {
+                    return res.status(200).json({ prismaUser, post, session, comments, like })
+                }
+                return res.status(200).json({ session, prismaUser, comments, post, liked: false })
             }
             if (!session) {
                 const post = await prisma.post.update({

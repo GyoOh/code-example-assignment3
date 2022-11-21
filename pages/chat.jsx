@@ -26,8 +26,7 @@ export default function Chat() {
   };
   return (
     <div>
-      <h1>Chat</h1>
-
+      <h1>Chat room</h1>
       <MessageForm onSubmit={submitHandler} />
       {messages?.map(message => (
         <p key={message.id} className="text-gray-100">

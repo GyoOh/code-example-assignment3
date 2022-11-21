@@ -9,13 +9,12 @@ export default function MessageForm({ onSubmit }) {
   };
   return (
     <form onSubmit={handleSubmit} className="space-y-6" method="POST">
-      <input type="hidden" name="remember" value="true" />
       <div className="rounded-md shadow-sm -space-y-px">
         <div>
           <label htmlFor="message" className="sr-only">
             Message
           </label>
-          <textarea
+          <input
             value={message}
             onChange={e => setMessage(e.target.value)}
             id="message"
